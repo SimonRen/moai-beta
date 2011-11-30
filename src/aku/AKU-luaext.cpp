@@ -39,12 +39,21 @@ void AKUExtLoadLuasocket () {
 	//luaopen_socket_core ( state );
 	
 	luaL_Reg regTable [] = {
-		{ "luaopen_socket_core",	luaopen_socket_core },
-		{ "luaopen_mime_core",		luaopen_mime_core },
+		{ "socket.core",	luaopen_socket_core },
+		{ "mime.core",		luaopen_mime_core },
 		{ NULL, NULL }
 	};
 	
-	luaL_register ( state, "socketwrap", regTable );
+	luaL_findtable( state, LUA_GLOBALSINDEX, "package.preload",
+				   sizeof(regTable)/sizeof(regTable[0]) - 1);
+	
+	luaL_Reg *lib = regTable;
+	for (; lib->func; lib++) {
+		lua_pushstring(state, lib->name);
+		lua_pushcfunction(state, lib->func);
+		lua_rawset(state, -3);
+	}
+	lua_pop(state, 1);
 }
 
 //----------------------------------------------------------------//
